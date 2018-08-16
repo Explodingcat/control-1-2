@@ -13,19 +13,6 @@ void imprimir_Nombres()
 }
 
 
-void separar_Entrada(char * entrada, string prog[3])
-{
-	string enter=entrada;
-	int pos;
-	for(int i=0;i<3;i++)
-	{
-		pos=enter.find(" ");
-		prog[i]=enter.substr(0,pos);
-		enter=enter.substr(pos+1);
-	}
-
-} 
-
 void buscar_Linea(string inicio, string destino)
 {
 	
@@ -33,15 +20,14 @@ void buscar_Linea(string inicio, string destino)
 
 int main(int argc, char* argv[])
 {
-	string programa[3];
-	separar_Entrada(argv[1],programa);
-	if(programa[0]=="-v")
+	string hola=argv[1];
+	if(hola=="-v")
 	{
 		imprimir_Nombres();
 	}
 	else
 	{
-		if(programa[0]=="-f")
+		if(hola=="-f")
 		{
 
 		}
