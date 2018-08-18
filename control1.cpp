@@ -13,10 +13,7 @@ struct Estacion {
   int linea;
   string cod;
   string nombre;
-  int terminal;
   int comb;
-  int direct1;
-  int direct2;
 };
 
 void imprimir_Nombres()
@@ -80,25 +77,8 @@ void llenar_Metro(vector <Estacion> &metro)
 	metro.push_back(b);
 }
 
-void buscar_Terminales(vector <Estacion> &metro)
-{
-	for(int i=0;i<metro.size();i++)
-	{
-		if(metro[i].id!=0)
-		{
-			if(metro[i-1].id==0 || metro[i+1].id==0)
-			{
-				metro[i].terminal=1;
-			}
-			else
-			{
-				metro[i].terminal=0;
-			}
-		}
-	}
-}
 
-int buscar_Estacion(vector <Estacion> &metro, string inic, string final, int *in, int *fin)
+int buscar_Estacion(vector <Estacion> metro, string inic, string final, int *in, int *fin)
 {
 	int cont=0;
 	for(int i=0;i<metro.size();i++)
@@ -115,17 +95,6 @@ int buscar_Estacion(vector <Estacion> &metro, string inic, string final, int *in
 		}
 	}
 	return cont;
-}
-void buscar_Direcciones(vector <Estacion> &metro)
-{
-	for(int i=0;i<metro.size();i++)
-	{
-		if(metro[i].id!=0)
-		{
-			metro[i].direct1= metro[i+1].id;
-			metro[i].direct2= metro[i-1].id;
-		}
-	}
 }
 
 void buscar_Combis(vector <Estacion> &metro)
@@ -146,9 +115,9 @@ void buscar_Combis(vector <Estacion> &metro)
 	}
 }
 
-void buscando_Opciones(vector <Estacion> &metro, int *cont, string &cam, int inic, int des, vector <string> &posibles, vector <int> &valores)
+void buscando_Opciones(vector <Estacion> metro, int *cont, string &cam, int inic, int des, vector <string> &posibles, vector <int> &valores)
 {
-	int movd,movi,contd,conti,checkd=0,checki=0;
+	int movd,movi,contd,conti,checkd=0,checki=0,aux;
 	string caminod,caminoi,can;
 	if(*cont>50)
 	{
@@ -156,6 +125,19 @@ void buscando_Opciones(vector <Estacion> &metro, int *cont, string &cam, int ini
 	}
 	else
 	{
+		if(*cont==0 && metro[inic].comb!=0)
+		{
+			for(int i=0;i<metro.size();i++)
+			{
+				if(metro[inic].nombre==metro[i].nombre && inic!=i)
+				{
+					aux=-1;
+					buscando_Opciones(metro,&aux,cam,i,des,posibles,valores);
+				}
+			}
+		}
+		if(*cont==-1)
+		*cont=0;
 		contd=*cont;
 		caminod=cam;
 		movd=inic+1;
@@ -191,6 +173,7 @@ void buscando_Opciones(vector <Estacion> &metro, int *cont, string &cam, int ini
 					}
 				}
 			}
+			
 			movd++;
 		}
 		conti=*cont;
@@ -233,16 +216,17 @@ void buscando_Opciones(vector <Estacion> &metro, int *cont, string &cam, int ini
 	}
 }
 
-void planificar_Viaje(vector <Estacion> &metro, int ini, int des)
+void planificar_Viaje(vector <Estacion> metro, int ini, int des)
 {
 	string recorrido=metro[ini].nombre;
 	vector <string> posibles;
 	vector <int> valores;
-	int cont=0,menor=999,indice;
+	int cont=0,menor=999,redy=0;
 
-	if(ini==des)
+	if(metro[ini].nombre==metro[des].nombre)
 	{
-		cout<<metro[ini].nombre<<endl;
+		cout<<"_________________RUTA PLANIFICADA___________________"<<endl;
+		cout<<metro[ini].nombre<<endl;	
 	}
 	else
 	{
@@ -252,39 +236,54 @@ void planificar_Viaje(vector <Estacion> &metro, int ini, int des)
 			if(valores[i]<menor)
 			{
 				menor=valores[i];
-				indice=i;
 			}
 		}
-		cout<<posibles[indice]<<endl;
+		for(int i=0;i<valores.size();i++) //verifica si existen mas de 1 ruta menor y entrega todas las opciones
+		{
+			if(valores[i]==menor)
+			{
+				cout<<"_________________RUTA PLANIFICADA___________________"<<endl;
+				cout<<posibles[i]<<endl;
+				cout<<endl;
+			}
+		}
 	}
+	
 }
 
 
 int main(int argc, char* argv[])
 {
 	vector <Estacion> metro;
-	string hola=argv[1];
-	string inic=argv[2];
-	string final=argv[3];
+	string inic,final,hola;
 	int in,fin;
 
-	if(argc==4)
+	if(argc==2) 
 	{
+		hola=argv[1];
 		if(hola=="-v")
 		{
 			imprimir_Nombres();
 		}
 		else
 		{
+			cout<<"Entrada Invalida"<<endl;
+		}
+	}
+	else
+	{
+		if(argc==4)
+		{
+			hola=argv[1];
 			if(hola=="-f")
 			{
-				llenar_Metro(metro);
+				inic=argv[2];
+				final=argv[3];
+				llenar_Metro(metro); //llena el vector de estaciones
 				if(buscar_Estacion(metro,inic,final,&in,&fin)==2)
 				{	
-					buscar_Terminales(metro);
-					buscar_Direcciones(metro);
-					buscar_Combis(metro);
-					planificar_Viaje(metro,in,fin);
+					buscar_Combis(metro); //funcion busca todas las estaciones que poseen estacion en mas de una linea, si lo encuentra guarda en variable comb el numero de la linea a la que combina.
+					planificar_Viaje(metro,in,fin);//planifica 
 				}
 				else
 				{
@@ -296,9 +295,9 @@ int main(int argc, char* argv[])
 				cout<<"Entrada Invalida"<<endl;
 			}
 		}
-	}
-	else
-	{
-		cout<<"Error en datos ingresados"<<endl;
+		else
+		{
+			cout<<"Error en datos ingresados"<<endl;
+		}
 	}
 }
